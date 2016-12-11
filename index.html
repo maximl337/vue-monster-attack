@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Monster Challenge</title>
+
+	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	<style>
+		.health-bar {
+			height: 20px;
+			background-color: green;
+		}
+
+		.log {
+			height: 300px;
+			overflow-y: auto;
+		}
+	</style>
+</head>
+<body>
+	
+<div class="container" id="app">
+
+		<div class="row">
+			<h1 class="text-center">Monster v. You </h1>
+		</div>
+	
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-6 text-center">
+						<h1>YOU</h1>
+						<div class="health-bar" v-bind:style="playerHpBar"></div>
+					</div>
+					<div class="col-md-6 text-center">
+						<h1>MONSTER</h1>
+						<div class="health-bar" v-bind:style="monsterHpBar"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div class="row">
+					<div v-if="!showControls" class="col-md-12 text-center">
+						<button class="btn btn-lg btn-primary" v-on:click="showControls = true">Start Game</button>
+					</div>
+
+					<template v-if="showControls">
+						<div class="col-md-3 text-center">
+							<button class="btn btn-primary" v-on:click="attack(1, 5)">
+								Attack
+							</button>
+						</div>
+						<div class="col-md-3 text-center">
+							<button class="btn btn-warning" v-on:click="attack(5, 15)">
+								Special attack
+							</button>
+						</div>
+						<div class="col-md-3 text-center">
+							<button class="btn btn-success" v-on:click="heal()">
+								Heal
+							</button>
+						</div>
+						<div class="col-md-3 text-center">
+							<button class="btn btn-danger" v-on:click="gameOver()">
+								Give up
+							</button>
+						</div>
+					</template>
+				</div>
+			</div>
+		</div>
+
+		<div  v-if="log.length > 0" class="panel panel-default log">
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-12">
+						<p 	class="alert" 
+							v-for="(item, i) in log" 
+							v-bind:class="item.class"
+						>
+							{{ item.message }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	
+
+</div>
+	
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+
+<script>
+
+	new Vue({
+
+		el: '#app',
+
+		data: {
+
+			playerHP: 100,
+			monsterHP: 100,
+			showControls: false,
+			log: []
+		},
+
+		methods: {
+
+			attack: function(min, max) {
+
+				var playerAttack = this.randomNumber(min, max);
+
+				var monsterAttack = this.randomNumber(min, max);
+
+				this.monsterHP = this.monsterHP > playerAttack
+								 ? this.monsterHP - playerAttack
+								 : 0;
+
+				this.playerHP = this.playerHP > monsterAttack
+								? this.playerHP - monsterAttack
+								: 0;
+
+				this.log.unshift({
+					class: 'alert-success',
+					message: 'You attacked Monster for ' + playerAttack + ' points'
+				});
+
+				this.log.unshift({
+					class: 'alert-danger',
+					message: 'Monster attacked you for ' + monsterAttack + ' points'
+				});
+
+				if(this.playerHP == 0) {
+					alert("You Lose!");
+					this.gameOver();
+				} else if(this.monsterHP == 0) {
+					alert("You Win!")
+					this.gameOver();
+				}
+			},
+
+			heal: function() {
+
+				var healPoints = this.randomNumber(1, 10);
+
+				// check player HP is below 100 and
+				// heal points is less than the difference
+				var difference = 100 - this.playerHP;
+
+				if(this.playerHP < 100 && difference > healPoints) {
+					this.playerHP += healPoints;
+				} else if (this.playerHP < 100 && difference < healPoints) {
+					this.playerHP = 100;
+				}
+
+				this.log.unshift({
+					class: 'alert-success',
+					message: 'You healed for ' + healPoints + ' points'
+				});
+
+			},
+
+			gameOver: function() {
+
+				this.playerHP = 100;
+				this.monsterHP = 100;
+				this.showControls = false;
+				this.log = [];
+			},
+
+			randomNumber: function(min, max) {
+
+				return Math.floor((Math.random() * max) + min);
+			},
+
+
+		},
+
+		computed: {
+			playerHpBar: function() {
+				return {
+					width: this.playerHP + '%'
+				}
+			},
+			monsterHpBar: function() {
+				return {
+					width: this.monsterHP + '%'
+				}
+			}
+		}
+	})
+
+
+</script>
+</body>
+</html>
